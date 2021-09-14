@@ -1,0 +1,8 @@
+{
+  "prefix": "wraf",
+  "short_name": "wp rest api filter plugin",
+  "dependencies": {
+    "php": "7.0",
+    "wp": "5.3"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "ducnguon/wp-rest-api-filter",
+  "type": "wordpress-plugin",
+  "description": "A bloilerplate for WordPress plugin",
+  "keywords": [
+    "wordpress",
+    "plugin",
+    "boilerplate"
+  ],
+  "homepage": "https://github.com/ducnguon",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Duc",
+      "homepage": "https://github.com/ducnguon",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/ducnguon/wp-rest-api-filter/issues/",
+    "wiki": "https://github.com/ducnguon/wp-rest-api-filter/wiki/",
+    "source": "https://github.com/ducnguon/wp-rest-api-filter/"
+  },
+  "autoload": {
+    "psr-4": {
+      "AmagumoLabs\\wprestapifilter\\": "app/"
+    }
+  }
+}
