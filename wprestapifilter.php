@@ -46,3 +46,6 @@ $settings = array(
   'textdomain' => 'wraf',
   'prefix' => 'wraf'
 );
+
+// Initialize plugin
+\AmagumoLabs\wprestapifilter\Plugin::instance($settings);
