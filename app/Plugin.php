@@ -50,6 +50,8 @@ if( ! class_exists( 'Plugin' )) {
           * @since 1.0.0
           */
         public function load_plugin() {
+          // Enqueue scripts and stylesheets
+          new EnqueueScripts();
         }
         /**
           * Initialize Carbon Fields and load plugin logic
