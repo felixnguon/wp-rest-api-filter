@@ -50,6 +50,9 @@ if( ! class_exists( 'Plugin' )) {
           * @since 1.0.0
           */
         public function load_plugin() {
+          // Load shortcodes
+          new Shortcodes\Shortcode_Loader();
+
           // Enqueue scripts and stylesheets
           new EnqueueScripts();
         }
