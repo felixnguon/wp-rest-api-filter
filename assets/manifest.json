@@ -1,0 +1,7 @@
+{
+  "src/main.js": {
+    "file": "js/wprestapifilter.js",
+    "src": "src/main.js",
+    "isEntry": true
+  }
+}

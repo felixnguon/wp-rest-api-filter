@@ -6,5 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'AmagumoLabs\\SearchTeam\\' => array($baseDir . '/app'),
+    'AmagumoLabs\\wprestapifilter\\' => array($baseDir . '/app'),
 );

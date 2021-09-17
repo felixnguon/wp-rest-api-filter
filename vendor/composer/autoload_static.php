@@ -7,14 +7,14 @@ namespace Composer\Autoload;
 class ComposerStaticInit5df78086d07785a32e6e6283e9db247c
 {
     public static $prefixLengthsPsr4 = array (
-        'A' => 
+        'A' =>
         array (
-            'AmagumoLabs\\SearchTeam\\' => 23,
+            'AmagumoLabs\\wprestapifilter\\' => 23,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'AmagumoLabs\\SearchTeam\\' => 
+        'AmagumoLabs\\wprestapifilter\\' =>
         array (
             0 => __DIR__ . '/../..' . '/app',
         ),

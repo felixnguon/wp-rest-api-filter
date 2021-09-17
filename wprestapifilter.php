@@ -4,7 +4,7 @@
  * Plugin Name:       WP rest API filter
  * Plugin URI:        https://github.com/ducnguon/wp-rest-api-filter
  * Description:       A WordPress Rest API search/filter plugin
- * Version:           1.0
+ * Version:           1.0.0
  * Author:            Felix
  * Author URI:        https://github.com/ducnguon
  * License:           GPL-2.0
