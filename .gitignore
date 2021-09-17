@@ -61,11 +61,17 @@ wp-config.php
 # htaccess
 /.htaccess
 
+### Local Bundle with Vite ###
 # Local env files
 .env
 .env.test
 .env.local
 .env.*.local
+node_modules/
+config.js
+*.config.js
+package.json
+yarn.lock
 
 # All plugins
 # Note: If you wish to whitelist plugins,
@@ -92,3 +98,4 @@ wp-config.php
 *.njsproj
 *.sln
 *.sw?
+
