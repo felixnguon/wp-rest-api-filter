@@ -1,0 +1,22 @@
+#wraf-result-posts {
+  .featured-image {
+    min-width: 35%;
+    min-height: 100px;
+  }
+}
+
+.posts {
+  &.wraf-searchteam {
+    label {
+      flex-grow: 1;
+    }
+  }
+  &.wraf-dropdown {
+    &__button {
+      width: 100%;
+    }
+  }
+  &.wraf-dropdown-reset {
+    margin-left: auto;
+  }
+}

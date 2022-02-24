@@ -18,7 +18,7 @@ class EnqueueScripts extends Plugin {
     public function enqueue_frontend_scripts() {
 
         // Enqueue script dependencies
-        //$this->enqueue_common_scripts();
+        $this->enqueue_common_scripts();
 
         // Enqueuing custom CSS for child theme (Twentysixteen was used for testing)
         wp_enqueue_style( 'wprestapifilter', Helpers::get_script_url( 'assets/css/wprestapifilter.css' ), null, Helpers::get_script_version( 'assets/css/wprestapifilter.css' ) );
@@ -35,9 +35,6 @@ class EnqueueScripts extends Plugin {
     * @since 1.0.0
     */
     private function enqueue_common_scripts() {
-
-        // Enqueue common (frontend/backend) JavaScript
-
     }
 
     /**

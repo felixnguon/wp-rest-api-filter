@@ -126,7 +126,7 @@ class Helpers extends Plugin {
     *
     * @return bool
     */
-    public function is_production() {
+    public static function is_production() {
         if( !defined('WP_ENV') ) {
           return true;
         } else {
@@ -209,4 +209,24 @@ class Helpers extends Plugin {
     return self::get_script_path( $script, $return_minified, true );
   }
 
+  /**
+   * Convert a comma separated string into an associated array.
+   * The first row should contain the array keys.
+   *
+   * @param string $string The value
+   * @param string $delimiter The separator
+   * @return array
+   * @since 1.0.0
+   */
+  public static function convert_string_to_array($string='', $delimiter=',')
+  {
+    if (!is_string($string) || empty($string))
+      return FALSE;
+
+    // sanitize the data and trim white space
+    $data = preg_replace( '/\s*,\s*/', ',', filter_var( $string, FILTER_SANITIZE_STRING ) );
+    $array = explode( $delimiter, $data );
+
+    return $array;
+  }
 }

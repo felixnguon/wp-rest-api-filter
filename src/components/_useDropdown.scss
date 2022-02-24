@@ -6,6 +6,7 @@ $accent: #223c7e;
   display: inline-block;
   max-width: 100%;
   margin: 0 15px 0 0;
+  width: 100%;
   &:last-child {
     margin-right: 0px;
   }
@@ -20,7 +21,7 @@ $accent: #223c7e;
     font-weight: 600;
     text-align: left;
     position: relative;
-    min-width: 210px;
+    width: 100%;
     @media only screen and (max-width: 640px) {
       min-width: 160px;
     }
@@ -109,6 +110,16 @@ $accent: #223c7e;
     @media only screen and (max-width: 640px) {
       font-size: 0.8rem;
     }
+  }
+}
+.wraf {
+  &-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  &-dropdown-wrapper,
+  &-searchteam {
+    flex: 1 1 100%;
   }
 }
 .wraf-searchteam {

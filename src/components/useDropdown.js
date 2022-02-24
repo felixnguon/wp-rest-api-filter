@@ -1,19 +1,21 @@
 import { PREFIX } from '../config'
+import employee from '../template/employee'
+import post from '../template/post'
+
 // import jQuery from 'jquery'
 window.$j = window.jQuery = jQuery
-var $j = jQuery.noConflict()
+let $j = jQuery.noConflict()
 
 const useDropdown = (select, select_i) => {
   let dropDownDiv = document.createElement('div')
   select.parentNode.insertBefore(dropDownDiv, select)
   dropDownDiv.appendChild(select)
 
-  var dropDownButton = document.createElement('button'),
+  let dropDownButton = document.createElement('button'),
     dropDownLabel = document.createElement('span'),
     labelText = document.createTextNode(select.getAttribute('data-label')),
     dropDownArrow = document.createElement('i'),
     dropDownList = document.createElement('ul')
-
   dropDownDiv.className = PREFIX + '-dropdown select-dropdown--' + select_i
   dropDownButton.className =
     PREFIX +
@@ -21,8 +23,13 @@ const useDropdown = (select, select_i) => {
     ' ' +
     PREFIX +
     '-dropdown__button--' +
-    select_i
+    select_i +
+    ' ' +
+    select.getAttribute('data-posttype')
+
   dropDownButton.setAttribute('data-value', '')
+  dropDownButton.setAttribute('data-term', select.getAttribute('data-term'))
+
   dropDownLabel.className =
     PREFIX + '-dropdown__label' + ' ' + PREFIX + '-dropdown__label--' + select_i
   dropDownArrow.className = 'chevron-down'
@@ -36,7 +43,7 @@ const useDropdown = (select, select_i) => {
   dropDownButton.appendChild(dropDownArrow)
   dropDownDiv.appendChild(dropDownList)
 
-  for (var i = 0; i < select.options.length; i++) {
+  for (let i = 0; i < select.options.length; i++) {
     let dropDownItem = document.createElement('li'),
       optionValue = select.options[i].value,
       optionText = document.createTextNode(select.options[i].text)
@@ -57,27 +64,31 @@ const useDropdown = (select, select_i) => {
 }
 
 const InitializeSearch = () => {
-  var searchButton = document.getElementsByClassName('wraf-submit')
-  if (searchButton.item(0)) {
+  let searchButton = document.getElementsByClassName('wraf-submit').item(0)
+  if (searchButton) {
     $j(document).on('keydown', 'form', function (event) {
       return event.key != 'Enter'
     })
-    searchButton.item(0).addEventListener(
+    searchButton.addEventListener(
       'click',
       function (event) {
         event.preventDefault()
         event.stopPropagation()
-        var preloader =
+        let preloader =
           '<div class="ball-pulse"><div style="background-color: #223c7e"></div><div style="background-color: #223c7e"></div><div style="background-color: #223c7e"></div></div>'
-        var postTypeFilter = this.getAttribute('data-posttype'),
-          termFilter = this.parentNode
+        let postTypeFilter = this.getAttribute('data-posttype'),
+          searchFilter = this.parentNode
             .getElementsByClassName('search-field')
             .item(0).value,
+          termFilter = searchButton.getAttribute('data-taxonomy'),
+          typeFilter = searchButton.getAttribute('data-type-filter'),
           resultFilter = document.getElementById(
-            PREFIX + '-result-' + postTypeFilter + '-' + 'employees_category'
+            [PREFIX, 'result', postTypeFilter, termFilter]
+              .filter(Boolean)
+              .join('-')
           ),
+          fields = [],
           requestRunning = false
-
         if (requestRunning) {
           return
         }
@@ -92,14 +103,20 @@ const InitializeSearch = () => {
           resultFilter.classList.add('loading')
           $j(resultFilter).append(preloader)
         }
-
-        var jsonURL = wraf_ajax_filter_params.json_url
-        if (typeof postTypeFilter != 'undefined' && postTypeFilter != null) {
-          jsonURL += postTypeFilter
-          if (termFilter != null) {
-            jsonURL += '?search=' + termFilter + '&per_page=100'
-          }
+        if (
+          postTypeFilter == 'posts' &&
+          searchButton.getAttribute('data-categories')
+        ) {
+          fields.push({
+            categories: searchButton.getAttribute('data-categories'),
+          })
         }
+        let jsonURL = buildJsonSearchURL(
+          postTypeFilter,
+          typeFilter,
+          searchFilter,
+          fields
+        )
 
         $j.ajax({
           dataType: 'json',
@@ -113,71 +130,14 @@ const InitializeSearch = () => {
           },
         })
           .done(function (response) {
-            response.sort(function (a, b) {
-              return a.employees_order - b.employees_order
-            })
-            var output =
-              '<h2>Search results</h2><div class="mk-employees jupiter-donut-margin-bottom-10 jupiter-donut-margin-top-10 three-column u6col u5col u4col o0col o1col o2col simple c_cs  jupiter-donut-"><ul>'
-            $j.each(response, function (index, object) {
-              output +=
-                '<li class="mk-employee-item jupiter-donut-colitem jupiter-donut-align-center jupiter-donut-display-inline-block jupiter-donut-float-left">'
-              output += '<div class="item-holder">'
-
-              output +=
-                '<div class="team-thumbnail jupiter-donut-position-relative jupiter-donut-width-100-per jupiter-donut-height-100-per jupiter-donut-overflow-hidden rounded-false"><a href="' +
-                object.link +
-                '"><img alt="' +
-                object.title.rendered +
-                '" title="' +
-                object.title.rendered +
-                '" src="' +
-                object.employees_image_src +
-                '" /> </a></div>'
-
-              output +=
-                '<div class="team-info-wrapper" itemscope="itemscope" itemtype="https://schema.org/Person">'
-              output +=
-                '<a class="team-member-name" href="' +
-                object.link +
-                '"> <span class="team-member-name jupiter-donut-font-16 jupiter-donut-display-block jupiter-donut-font-weight-bold jupiter-donut-text-transform-up jupiter-donut-color-333">' +
-                object.title.rendered +
-                '</span> </a>'
-              output +=
-                '<span class="team-member-position jupiter-donut-font-12 jupiter-donut-text-transform-up jupiter-donut-display-block jupiter-donut-color-777 jupiter-donut-letter-spacing-1">' +
-                object.employees_position +
-                '</span>'
-
-              output +=
-                '<div class="team-member-desc jupiter-donut-margin-top-20 jupiter-donut-margin-bottom-10 jupiter-donut-display-block"><p>' +
-                object.employees_desc +
-                '</p></div>'
-
-              output += '</li>'
-            })
-            output += '</ul></div>'
-            // console.log(response);
-            if (output.length) {
-              //Remove all child elements of a DOM node
-              if (typeof resultFilter != 'undefined' && resultFilter != null) {
-                //Remove all child elements of a DOM node
-                while (resultFilter.firstChild) {
-                  resultFilter.removeChild(resultFilter.firstChild)
-                }
-              }
-              $j(resultFilter).append(output)
-              $j(resultFilter).removeClass('loading')
-              if ($j(window).width() < 640) {
-                $j('html, body').animate(
-                  {
-                    scrollTop: $j(resultFilter).offset().top,
-                  },
-                  1000
-                )
-              }
+            if (typeFilter == 'taxanomy') {
+              employee.renderFilterResult(response)
+            } else if (typeFilter == 'meta') {
+              post.renderFilterResult(response)
             }
           })
           .fail(function (response) {
-            console.log("Something went wront, can't fetch")
+            console.log("Something went wrong, can't fetch")
           })
           .always(function (response) {
             // 11. Always reset the requestRunning to keep sending new AJAX requests
@@ -191,28 +151,28 @@ const InitializeSearch = () => {
 
 const displayUl = (element) => {
   if (element.tagName == 'BUTTON') {
-    var selectDropdown = element.parentNode.getElementsByTagName('ul')
+    let selectDropdown = element.parentNode.getElementsByTagName('ul')
 
     if (typeof selectDropdown != 'undefined' && selectDropdown != null) {
       selectDropdown[0].classList.add('current')
       //Close all the dropdown first
-      var selectDropdowns = document.querySelectorAll(
+      let selectDropdowns = document.querySelectorAll(
         '.wraf-dropdown__list:not(.current)'
       )
       if (selectDropdowns) {
-        for (var i = 0, len = selectDropdowns.length; i < len; i++) {
+        for (let i = 0, len = selectDropdowns.length; i < len; i++) {
           selectDropdowns[i].classList.remove('active')
         }
       }
       selectDropdown[0].classList.remove('current')
 
-      for (var i = 0, len = selectDropdown.length; i < len; i++) {
+      for (let i = 0, len = selectDropdown.length; i < len; i++) {
         selectDropdown[0].classList.toggle('active')
         element.classList.toggle('active')
       }
     }
   } else if (element.tagName == 'LI') {
-    var selectId =
+    let selectId =
       element.parentNode.parentNode.getElementsByTagName('select')[0]
     if (typeof selectId != 'undefined' && selectId != null) {
       selectElement(selectId.id, element.getAttribute('data-value'))
@@ -232,70 +192,77 @@ const displayUl = (element) => {
 }
 
 const selectElement = (id, valueToSelect) => {
-  var element = document.getElementById(id)
+  let element = document.getElementById(id)
   element.value = valueToSelect
   element.setAttribute('selected', 'selected')
 }
 
 const resetDropdown = () => {
-  var resetBtn = document.getElementsByClassName('wraf-dropdown-reset')[0]
+  let resetBtn = document.getElementsByClassName('wraf-dropdown-reset')[0]
   if (typeof resetBtn != 'undefined' && resetBtn != null) {
-    var postTypeFilter = resetBtn.getAttribute('data-posttype'),
+    let postTypeFilter = resetBtn.getAttribute('data-posttype'),
       termFilter = resetBtn.getAttribute('data-taxonomy'),
       resultFilter = document.getElementById(
-        PREFIX + '-result-' + postTypeFilter + '-' + termFilter
+        [PREFIX, 'result', postTypeFilter, termFilter].filter(Boolean).join('-')
       )
 
     resetBtn.addEventListener('click', function (event) {
       event.preventDefault()
       if (typeof resultFilter != 'undefined' && resultFilter != null) {
-        console.log('result-test 1')
         //Remove all child elements of a DOM node
         while (resultFilter.firstChild) {
           resultFilter.removeChild(resultFilter.firstChild)
         }
       }
-      var dropdowns = document.getElementsByClassName('wraf-dropdown')
+      let dropdowns = document.getElementsByClassName('wraf-dropdown')
       if (typeof dropdowns != 'undefined' && dropdowns != null) {
         Array.from(dropdowns).forEach(function (item, index) {
-          var dropDownLabel = item
+          let dropDownLabel = item
             .getElementsByTagName('select')[0]
             .getAttribute('data-label')
-          var dropDownButton = item.getElementsByTagName('button')[0]
+          let dropDownButton = item.getElementsByTagName('button')[0]
           dropDownButton.classList.remove('active')
-          var span = dropDownButton.getElementsByTagName('span')[0]
+          let span = dropDownButton.getElementsByTagName('span')[0]
           span.textContent = dropDownLabel
           span.parentNode.setAttribute('data-value', '')
         })
+      }
+
+      if (postTypeFilter == 'posts') {
+        document.getElementsByClassName('search-field').item(0).value = ''
+        let searchButton = document
+          .getElementsByClassName('wraf-submit')
+          .item(0)
+        searchButton.click()
       }
     })
   }
 }
 
 const filter = (element) => {
-  var select = element.parentNode.parentNode
+  let select = element.parentNode.parentNode
     .getElementsByTagName('select')
     .item(0)
 
   if (select) {
-    var $jthis = element,
+    let $jthis = element,
       postTypeFilter = select.getAttribute('data-posttype'),
       termFilter = select.getAttribute('data-taxonomy'),
-      termIDFilter = element.getAttribute('data-value'),
+      typeFilter = select.getAttribute('data-type-filter'),
       resultFilter = document.getElementById(
-        PREFIX + '-result-' + postTypeFilter + '-' + termFilter
+        [PREFIX, 'result', postTypeFilter, termFilter].filter(Boolean).join('-')
       ),
       layout = select.classList.contains('list') ? 'list' : 'grid',
       perPage = 100,
       preloader =
         '<div class="ball-pulse"><div style="background-color: #223c7e"></div><div style="background-color: #223c7e"></div><div style="background-color: #223c7e"></div></div>',
-      requestRunning = false
+      requestRunning = false,
+      fields = []
 
     if (requestRunning) {
       return
     }
     requestRunning = true
-
     if (typeof resultFilter != 'undefined' && resultFilter != null) {
       //Remove all child elements of a DOM node
       while (resultFilter.firstChild) {
@@ -305,25 +272,24 @@ const filter = (element) => {
       resultFilter.classList.add('loading')
       $j(resultFilter).append(preloader)
     }
-    var termArrayFilter = []
-    var termArrayFilterElement = document.getElementsByClassName(
+
+    let termArrayFilterElement = document.getElementsByClassName(
       PREFIX + '-dropdown__button'
     )
 
-    var jsonURL = buildJsonFilterURL(postTypeFilter, termFilter, perPage)
+    if (postTypeFilter == 'posts' && select.getAttribute('data-categories')) {
+      fields.push({
+        categories: select.getAttribute('data-categories'),
+      })
+    }
 
-    var isAndOperator = false
-    Array.from(termArrayFilterElement).forEach(function (item, index) {
-      let andOperator = ''
-      if (isAndOperator) {
-        andOperator = '%2B'
-      }
-      if (item.getAttribute('data-value') != '') {
-        jsonURL += andOperator + item.getAttribute('data-value')
-        isAndOperator = true
-      }
-    })
-    jsonURL += '&per_page=100'
+    let jsonURL = buildJsonFilterURL(
+      postTypeFilter,
+      typeFilter,
+      termFilter,
+      termArrayFilterElement,
+      fields
+    )
 
     $j.ajax({
       dataType: 'json',
@@ -334,69 +300,10 @@ const filter = (element) => {
       },
     })
       .done(function (response) {
-        response.sort(function (a, b) {
-          return a.employees_order - b.employees_order
-        })
-
-        var output =
-          '<h2>Search results</h2><div class="mk-employees jupiter-donut-margin-bottom-10 jupiter-donut-margin-top-10 three-column u6col u5col u4col o0col o1col o2col simple c_cs  jupiter-donut-"><ul>'
-        $j.each(response, function (index, object) {
-          output +=
-            '<li class="mk-employee-item jupiter-donut-colitem jupiter-donut-align-center jupiter-donut-display-inline-block jupiter-donut-float-left">'
-          output += '<div class="item-holder">'
-
-          output +=
-            '<div class="team-thumbnail jupiter-donut-position-relative jupiter-donut-width-100-per jupiter-donut-height-100-per jupiter-donut-overflow-hidden rounded-false"><a href="' +
-            object.link +
-            '"><img alt="' +
-            object.title.rendered +
-            '" title="' +
-            object.title.rendered +
-            '" src="' +
-            object.employees_image_src +
-            '" /> </a></div>'
-
-          output +=
-            '<div class="team-info-wrapper" itemscope="itemscope" itemtype="https://schema.org/Person">'
-          output +=
-            '<a class="team-member-name" href="' +
-            object.link +
-            '"> <span class="team-member-name jupiter-donut-font-16 jupiter-donut-display-block jupiter-donut-font-weight-bold jupiter-donut-text-transform-up jupiter-donut-color-333">' +
-            object.title.rendered +
-            '</span> </a>'
-          output +=
-            '<span class="team-member-position jupiter-donut-font-12 jupiter-donut-text-transform-up jupiter-donut-display-block jupiter-donut-color-777 jupiter-donut-letter-spacing-1">' +
-            object.employees_position +
-            '</span>'
-
-          output +=
-            '<div class="team-member-desc jupiter-donut-margin-top-20 jupiter-donut-margin-bottom-10 jupiter-donut-display-block"><p>' +
-            object.employees_desc +
-            '</p></div>'
-
-          output += '</li>'
-          //console.log("index", index);
-          // console.log("object", object.title.rendered);
-        })
-        output += '</ul></div>'
-        //console.log(response);
-        if (output.length) {
-          if (typeof resultFilter != 'undefined' && resultFilter != null) {
-            //Remove all child elements of a DOM node
-            while (resultFilter.firstChild) {
-              resultFilter.removeChild(resultFilter.firstChild)
-            }
-          }
-          $j(resultFilter).append(output)
-          $j(resultFilter).removeClass('loading')
-          if ($j(window).width() < 640) {
-            $j('html, body').animate(
-              {
-                scrollTop: $j(resultFilter).offset().top,
-              },
-              1000
-            )
-          }
+        if (typeFilter == 'taxanomy') {
+          employee.renderFilterResult(response)
+        } else if (typeFilter == 'meta') {
+          post.renderFilterResult(response)
         }
       })
       .fail(function (response) {
@@ -409,7 +316,13 @@ const filter = (element) => {
   }
 }
 
-const buildJsonFilterURL = (postType, term, perPage) => {
+const buildJsonFilterURL = (
+  postType,
+  typeFilter,
+  term,
+  termArrayFilterElement,
+  fields = null
+) => {
   if (postType == 'post') {
     postType = 'posts'
     if (term == 'category') {
@@ -417,42 +330,113 @@ const buildJsonFilterURL = (postType, term, perPage) => {
     }
   }
 
-  let jsonUrl = wraf_ajax_filter_params.json_url
+  let jsonURL = wraf_ajax_filter_params.json_url
   if (typeof postType != 'undefined' && postType != null) {
-    jsonUrl += postType
-    if (typeof term != 'undefined' && term != null) {
-      jsonUrl += '?filter[' + term + ']='
+    jsonURL += postType + '?'
+    if (typeFilter == 'taxanomy') {
+      if (typeof term != 'undefined' && term != null) {
+        jsonURL += 'filter[' + term + ']='
+        let isAndOperator = false
+        Array.from(termArrayFilterElement).forEach(function (item, index) {
+          let andOperator = ''
+          if (isAndOperator) {
+            andOperator = '%2B'
+          }
+          if (item.getAttribute('data-value') != '') {
+            jsonURL += andOperator + item.getAttribute('data-value')
+            isAndOperator = true
+          }
+        })
+      }
+      jsonURL += '&per_page=100'
+    } else if (typeFilter == 'meta') {
+      Array.from(termArrayFilterElement).forEach(function (item, index) {
+        if (item.getAttribute('data-value') != '') {
+          let value = item.getAttribute('data-value')
+          if (item.getAttribute('data-term') == 'after') {
+            value = getDateRange(value)
+          }
+          jsonURL += '&' + item.getAttribute('data-term') + '=' + value
+        }
+      })
+
+      if (fields) {
+        fields.forEach(function (field) {
+          Object.keys(field).forEach(function eachKey(key) {
+            jsonURL += '&' + key + '=' + field[key]
+          })
+        })
+      }
     }
-    // if (typeof perPage != "undefined" && perPage != null) {
-    //   jsonUrl += "&per_page=" + perPage;
+
+    // let rangePickerDropdown = document
+    //   .getElementsByClassName('wraf-rangePicker')
+    //   .item(0)
+
+    // if (rangePickerDropdown) {
+    //   let before = datepickerDropdown.getAttribute('data-before'),
+    //     after = datepickerDropdown.getAttribute('data-after')
+    //   if (before && after) {
+    //     jsonURL += '&' + 'after=' + after
+    //   }
     // }
-    // jsonUrl += "&_embed";
+
+    // if (typeof perPage != "undefined" && perPage != null) {
+    //   jsonURL += "&per_page=" + perPage;
+    // }
   }
-  return jsonUrl
+  return jsonURL
 }
 
-// filterByDropdown: function(e) {
-//   // var $jthis = $j(this),
-//   //   termFilter = $jthis.find(".term-filter"),
-//   //   recentTuts = $jthis.find(".recent-tuts"),
-//   //   layout = recentTuts.hasClass("grid") ? "grid" : "list",
-//   //   perPage = termFilter.data("per-page"),
-//   //   requestRunning = false;
+const buildJsonSearchURL = (postType, typeFilter, searchData, fields) => {
+  let jsonURL = wraf_ajax_filter_params.json_url
+  if (typeof postType != 'undefined' && postType != null) {
+    jsonURL += postType + '?'
+    if (typeFilter == 'taxanomy') {
+      if (typeof searchData != 'undefined' && searchData != null) {
+        jsonURL += 'search=' + searchData
+      }
+      jsonURL += '&per_page=100&orderby=date&order=desc'
+    } else if (typeFilter == 'meta') {
+      if (typeof searchData != 'undefined' && searchData != null) {
+        jsonURL += 'search=' + searchData
+      }
+      jsonURL += '&per_page=100&orderby=date&order=desc'
+    }
+  }
+  if (fields) {
+    fields.forEach(function (field) {
+      Object.keys(field).forEach(function eachKey(key) {
+        jsonURL += '&' + key + '=' + field[key]
+      })
+    })
+  }
 
-//   console.log();
+  return jsonURL
+}
 
-//   // $j.ajax({
-//   //   type: "POST",
-//   //   url: wraf_ajax_filter_params.ajax_url,
-//   //   dataType: "json",
-//   //   data: {
-//   //     action: "filter_post_by_taxonomy_ajax"
-//   //   },
-//   //   success: function(result) {
-//   //     alert(result.success ? "success" : "Error: " + result.message);
-//   //   }
-//   // });
-// }
+const getDateRange = (value) => {
+  let rangeValue = value.split('-')
+  if (rangeValue.length) {
+    let defaultRange = ''
+    switch (rangeValue[0]) {
+      case 'week':
+        defaultRange = 7
+        break
+      case 'month':
+        defaultRange = 30
+        break
+      case 'year':
+        defaultRange = 365
+        break
+    }
+    let date = new Date()
+    let pastDate = date.getDate() - defaultRange
+    date.setDate(pastDate)
+    date.setHours(0, 0, 0, 0)
+    return date.toISOString()
+  }
+}
 
 export default {
   useDropdown,

@@ -13,13 +13,13 @@ class Shortcode_Loader extends Plugin {
   public function __construct() {
 
     $this->shortcodes = array(
-      Team_Shortcode::class
+      Team_Shortcode::class,
+      Post_Shortcode::class
     );
 
     foreach( $this->shortcodes as $shortcodeClass ) {
       if( class_exists( $shortcodeClass ) ) new $shortcodeClass();
     }
-
   }
 
 }
